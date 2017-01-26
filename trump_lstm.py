@@ -2,12 +2,14 @@ from __future__ import print_function
 import nltk
 import codecs
 import re
+import os
 
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 from keras.layers import LSTM
 from keras.optimizers import RMSprop, Adam
 from keras.regularizers import l2
+from keras.models import load_model
 
 import numpy as np
 import random
@@ -15,13 +17,16 @@ import sys
 
 maxlen = 60
 step = 5
+speech_path = "path/trump_dox/all_combined_speeches.txt"
+
+
 
 # Directly tokenize
 #speech_tokens = nltk.word_tokenize(speech_file.read())
 #len(set(speech_tokens))
 
-def prep_strings(maxlen,step):
-    speech_file = codecs.open('/trumpdox/all_combined_speeches.txt','r','utf-8-sig')
+def prep_strings(speech_path,maxlen,step):
+    speech_file = codecs.open(speech_path,'r','utf-8-sig')
 
     # Get as lines first to shuffle
     speech_raw = [line for line in speech_file]
@@ -57,20 +62,25 @@ def prep_strings(maxlen,step):
             X[i, t, char_indices[char]] = 1
         y[i, char_indices[next_chars[i]]] = 1
 
-    return X,y
+    return X,y,speech_raw,chars,char_indices,indices_char
+
+X, y, speech_raw, chars, char_indices, indices_char = prep_strings(speech_path, maxlen, step)
+
 
 # Build keras model
 model = Sequential()
 # Standard LSTM w/ dropout
 model.add(LSTM(128, input_shape=(maxlen, len(chars)),
-          dropout_W=0.05,dropout_U=0.1,
-          W_regularizer=l2(0.01),U_regularizer=l2(0.01),
+          dropout_U=0.001
           ))
 model.add(Dense(len(chars)))
 model.add(Activation('softmax'))
 
-optimizer = Adam(lr=0.001) # RMSProp w/ momentum
+optimizer = Adam(lr=0.01) # RMSProp w/ momentum
 model.compile(loss='categorical_crossentropy', optimizer=optimizer)
+
+# Or load it
+#model = load_model('/Users/Jonny/PycharmProjects/Scratch/trump_lstm/model_012517')
 
 def sample(preds, temperature=1.0):
     # helper function to sample an index from a probability array
@@ -87,7 +97,7 @@ for iteration in range(1, 10):
     print('-' * 50)
     print('Iteration', iteration)
     print('Generating Strings')
-    X,y = prep_strings(maxlen,step)
+    X,y,speech_raw,chars,char_indices,indices_char = prep_strings(speech_path,maxlen,step)
 
     model.fit(X, y, batch_size=256, nb_epoch=1)
 
@@ -119,3 +129,5 @@ for iteration in range(1, 10):
             sys.stdout.write(next_char)
             sys.stdout.flush()
         print()
+
+model.save('path/trump_lstm/model_012518')

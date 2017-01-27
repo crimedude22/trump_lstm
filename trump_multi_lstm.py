@@ -6,8 +6,7 @@ import os
 from time import strftime,gmtime
 
 from keras.models import Sequential
-from keras.layers import Dense, Activation
-from keras.layers import LSTM
+from keras.layers import Dense, Activation, LSTM, advanced_activations
 from keras.optimizers import RMSprop, Adam
 from keras.regularizers import l2
 from keras.models import load_model
@@ -16,15 +15,15 @@ import numpy as np
 import random
 import sys
 
-maxlen = 75
-step = 3
-speech_path = "/path/trump_lstm/trump_dox/all_combined_speeches.txt"
+maxlen = 125
+netsize = 128
+step = "/path/trump_lstm/trump_dox/all_combined_speeches.txt"
 
 
 
 # Directly tokenize
-#speech_tokens = nltk.word_tokenize(speech_file.read())
-#len(set(speech_tokens))
+# speech_tokens = nltk.word_tokenize(speech_file.read())
+# len(set(speech_tokens))
 
 def prep_strings(speech_path,maxlen,step):
     speech_file = codecs.open(speech_path,'r','utf-8-sig')
@@ -70,18 +69,21 @@ X, y, speech_raw, chars, char_indices, indices_char = prep_strings(speech_path, 
 
 # Build keras model
 #model = Sequential()
-# Standard LSTM w/ dropout
-#model.add(LSTM(256, input_shape=(maxlen, len(chars)),
-#          dropout_U=0.02
+# Multilevel LSTM w/ dropout
+#model.add(LSTM(netsize, input_shape=(maxlen, len(chars)),
+#          dropout_W=0.1,dropout_U=0.15,
+#          return_sequences=True
 #          ))
-#model.add(Dense(len(chars)))
-#model.add(Activation('softmax'))
-#
+#model.add(advanced_activations.ELU())
+#model.add(LSTM(netsize, dropout_W=0.15,dropout_U=0.2))
+#model.add(advanced_activations.ELU())
+#model.add(Dense(len(chars),activation='softmax'))
+
 #optimizer = Adam(lr=0.003) # RMSProp w/ momentum
 #model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
 # Or load it
-model = load_model('/path/trump_lstm/trump_weights_01260907')
+model = load_model('/path/trump_lstm/trump_multi_01270044_L125_S128')
 print('Loaded Model!')
 
 def sample(preds, temperature=1.0):
@@ -94,7 +96,7 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 # train the model, output generated text after each iteration
-model_str = '/path/trump_weights_{}'.format(strftime("%m%d%H%M", gmtime()))
+model_str = '/path/trump_multi_{}_L{}_S{}'.format(strftime("%m%d%H%M", gmtime()),maxlen,netsize)
 
 
 for iteration in range(1, 20):
@@ -104,7 +106,7 @@ for iteration in range(1, 20):
     print('Generating Strings')
     X,y,speech_raw,chars,char_indices,indices_char = prep_strings(speech_path,maxlen,step)
 
-    model.fit(X, y, batch_size=256, nb_epoch=1)
+    model.fit(X, y, batch_size=128, nb_epoch=1)
     model.save(model_str)
     start_index = random.randint(0, len(speech_raw) - maxlen - 1)
 

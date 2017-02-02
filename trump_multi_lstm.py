@@ -17,7 +17,8 @@ import sys
 
 maxlen = 125
 netsize = 128
-step = "/path/trump_lstm/trump_dox/all_combined_speeches.txt"
+step = 3
+speech_path = "/path/trump_lstm/trump_dox/all_combined_speeches.txt"
 
 
 
@@ -68,23 +69,23 @@ X, y, speech_raw, chars, char_indices, indices_char = prep_strings(speech_path, 
 
 
 # Build keras model
-#model = Sequential()
-# Multilevel LSTM w/ dropout
-#model.add(LSTM(netsize, input_shape=(maxlen, len(chars)),
-#          dropout_W=0.1,dropout_U=0.15,
-#          return_sequences=True
-#          ))
-#model.add(advanced_activations.ELU())
-#model.add(LSTM(netsize, dropout_W=0.15,dropout_U=0.2))
-#model.add(advanced_activations.ELU())
-#model.add(Dense(len(chars),activation='softmax'))
+model = Sequential()
+# # Multilevel LSTM w/ dropout
+model.add(LSTM(netsize, input_shape=(maxlen, len(chars)),
+          dropout_W=0.2,dropout_U=0.25,
+          return_sequences=True
+          ))
+model.add(advanced_activations.ELU())
+model.add(LSTM(netsize, dropout_W=0.2,dropout_U=0.25))
+model.add(advanced_activations.ELU())
+model.add(Dense(len(chars),activation='softmax'))
 
-#optimizer = Adam(lr=0.003) # RMSProp w/ momentum
-#model.compile(loss='categorical_crossentropy', optimizer=optimizer)
+optimizer = Adam(lr=0.005) # RMSProp w/ momentum
+model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
 # Or load it
-model = load_model('/path/trump_lstm/trump_multi_01270044_L125_S128')
-print('Loaded Model!')
+#model = load_model('/path/trump_lstm/trump_multi_01290152_L125_S128')
+#print('Loaded Model!')
 
 def sample(preds, temperature=1.0):
     # helper function to sample an index from a probability array
@@ -96,10 +97,10 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 # train the model, output generated text after each iteration
-model_str = '/path/trump_multi_{}_L{}_S{}'.format(strftime("%m%d%H%M", gmtime()),maxlen,netsize)
+model_str = '/path/trump_lstm/trump_multi_{}_L{}_S{}'.format(strftime("%m%d%H%M", gmtime()),maxlen,netsize)
 
 
-for iteration in range(1, 20):
+for iteration in range(1, 50):
     print()
     print('-' * 50)
     print('Iteration', iteration)

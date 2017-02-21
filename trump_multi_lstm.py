@@ -18,7 +18,7 @@ import sys
 maxlen = 125
 netsize = 128
 step = 3
-speech_path = "/path/trump_lstm/trump_dox/all_combined_speeches.txt"
+speech_path = "/Users/Jonny/PycharmProjects/Scratch/trump_lstm/trump_dox/all_combined_speeches.txt"
 
 
 
@@ -84,7 +84,7 @@ optimizer = Adam(lr=0.005) # RMSProp w/ momentum
 model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
 # Or load it
-#model = load_model('/path/trump_lstm/trump_multi_01290152_L125_S128')
+#model = load_model('/Users/Jonny/PycharmProjects/Scratch/trump_lstm/trump_multi_01290152_L125_S128')
 #print('Loaded Model!')
 
 def sample(preds, temperature=1.0):
@@ -97,7 +97,7 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 # train the model, output generated text after each iteration
-model_str = '/path/trump_lstm/trump_multi_{}_L{}_S{}'.format(strftime("%m%d%H%M", gmtime()),maxlen,netsize)
+model_str = '/Users/Jonny/PycharmProjects/Scratch/trump_lstm/trump_multi_{}_L{}_S{}'.format(strftime("%m%d%H%M", gmtime()),maxlen,netsize)
 
 
 for iteration in range(1, 50):
